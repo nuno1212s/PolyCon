@@ -166,6 +166,10 @@ public:
     void splitEdge(const std::vector<int> &, HalfEdge *h);
 
     void print();
+private:
+    void addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v);
+
+    void addEdgeClosedPolygon(HalfEdge *incidentOnU, Vertex *v);
 };
 
 #endif //TRABALHO2_DCEL_H

@@ -105,6 +105,76 @@ void DCEL::addEdge(Vertex *u, Vertex *v) {
 
 void DCEL::addEdge(HalfEdge *incidentOnU, Vertex *v) {
 
+    if (incidentOnU->getIncidentFace() != incidentOnU->getTwin()->getIncidentFace()) {
+        addEdgeClosedPolygon(incidentOnU, v);
+    } else {
+        addEdgeSingleFace(incidentOnU, v);
+    }
+
+}
+
+void DCEL::addEdgeClosedPolygon(HalfEdge *incidentOnU, Vertex *v) {
+    Vertex *u = incidentOnU->getTargetVertex();
+
+    Face *f = incidentOnU->getIncidentFace();
+
+    auto halfE1 = std::make_unique<HalfEdge>();
+    auto halfE2 = std::make_unique<HalfEdge>();
+
+    auto face1 = std::make_unique<Face>(halfE1.get());
+    auto face2 = std::make_unique<Face>(halfE2.get());
+
+    halfE1->setTwin(halfE2.get());
+    halfE2->setTwin(halfE1.get());
+
+    halfE1->setTargetVertex(v);
+    halfE2->setTargetVertex(u);
+
+    halfE2->setNext(incidentOnU->getNext());
+    halfE2->getNext()->setPrevious(halfE2->getNext());
+    halfE1->setPrevious(incidentOnU);
+    incidentOnU->setNext(halfE1.get());
+
+    HalfEdge* i = halfE2.get();
+
+    while(true) {
+        i->setIncidentFace(face2.get());
+
+        if (i->getTargetVertex() == v) break;
+
+        i = i->getNext();
+    }
+
+    halfE1->setNext(i->getNext());
+    halfE1->getNext()->setPrevious(halfE1.get());
+
+    i->setNext(halfE2.get());
+    halfE2->setPrevious(i);
+
+    i = halfE1.get();
+
+    do {
+        i->setIncidentFace(face1.get());
+        i = i->getNext();
+    } while (i->getTargetVertex() != u);
+
+
+    for (auto it = this->faces.begin(); it != this->faces.end(); it++) {
+
+        if ((*it).get() == f) {
+            it = this->faces.erase(it);
+            break;
+        }
+    }
+
+    this->faces.push_back(std::move(face1));
+    this->faces.push_back(std::move(face2));
+
+    this->halfEdges.push_back(std::move(halfE1));
+    this->halfEdges.push_back(std::move(halfE2));
+}
+
+void DCEL::addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v) {
     Vertex *u = incidentOnU->getTargetVertex();
 
     Face *f = incidentOnU->getIncidentFace();
@@ -121,38 +191,40 @@ void DCEL::addEdge(HalfEdge *incidentOnU, Vertex *v) {
     halfE1->setTargetVertex(v);
     halfE2->setTargetVertex(u);
 
-    halfE2->setNext(incidentOnU->getNext());
-
+    halfE2->setNext(incidentOnU->getTwin());
     halfE2->getNext()->setPrevious(halfE2.get());
+
     halfE1->setPrevious(incidentOnU);
 
     incidentOnU->setNext(halfE1.get());
 
-    auto start = halfE2.get();
+    auto i = halfE2.get();
 
     while (true) {
 
-        start->setIncidentFace(face2.get());
+        i->setIncidentFace(face2.get());
 
-        if (start->getTargetVertex() == v) break;
+        if (i->getTargetVertex() == v) break;
 
-        start = start->getNext();
+        i = i->getNext();
     }
 
-    halfE1->setNext(start);
+    i->setNext(halfE2.get());
+
+    halfE1->setNext(i->getTwin());
 
     halfE1->getNext()->setPrevious(halfE1.get());
 
-    start->setNext(halfE2.get());
+    halfE2->setPrevious(i);
 
-    start = halfE1.get();
+    i = halfE1.get();
 
     do {
 
-        start->setIncidentFace(face1.get());
-        start = start->getNext();
+        i->setIncidentFace(face1.get());
+        i = i->getNext();
 
-    } while (start->getTargetVertex() != u);
+    } while (i->getTargetVertex() != u);
 
     for (auto it = this->faces.begin(); it != this->faces.end(); it++) {
 
@@ -192,11 +264,9 @@ std::tuple<Vertex *, HalfEdge *> DCEL::addVertex(const std::vector<int> &coords,
     edge1->setIncidentFace(f);
     edge2->setIncidentFace(f);
 
-    edge1->setNext(edge2.get());
-    edge2->setNext(h->getNext());
+    edge2->setNext(h->getTwin());
 
     edge1->setPrevious(h);
-    edge2->setPrevious(edge1.get());
 
     h->setNext(edge1.get());
 
@@ -264,6 +334,7 @@ void DCEL::joinFaces(HalfEdge *h) {
 
 }
 
+
 void DCEL::splitEdge(const std::vector<int> &coords, HalfEdge *h) {
 
     auto vertex = std::make_unique<Vertex>(coords);
@@ -309,7 +380,6 @@ void DCEL::print() {
 
     Vertex *vertex = this->vertexes[0].get();
 
-
     HalfEdge *edge = vertex->getHalfEdge();
     HalfEdge *first = edge;
 
@@ -320,5 +390,12 @@ void DCEL::print() {
         edge = edge->getNext();
     } while (edge != first);
 
+    std::cout << "Face count: " << this->faces.size() << std::endl;
+
+    std::cout << "Vertex count: " << this->vertexes.size() << std::endl;
+
+    std::cout << "Half Edges count: " << this->halfEdges.size() << std::endl;
+
 }
+
 

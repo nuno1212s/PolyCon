@@ -30,5 +30,7 @@ int main() {
 
     std::cout << "Hello " << std::endl;
 
+    dcel.print();
+
     return 0;
 }
