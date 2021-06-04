@@ -378,19 +378,21 @@ void DCEL::splitEdge(const std::vector<int> &coords, HalfEdge *h) {
 
 void DCEL::print() {
 
-    Vertex *vertex = this->vertexes[0].get();
-
-    HalfEdge *edge = vertex->getHalfEdge();
-    HalfEdge *first = edge;
-
-    do {
-
-        std::cout << edge->getTargetVertex()->point()[0] << " " << edge->getTargetVertex()->point()[1] << std::endl;
-
-        edge = edge->getNext();
-    } while (edge != first);
-
     std::cout << "Face count: " << this->faces.size() << std::endl;
+
+    for (auto const &face : this->faces) {
+
+        HalfEdge *edge = face->getArbitraryHalfEdge(), *first = edge;
+
+        do {
+
+            Vertex *v = edge->getTargetVertex();
+
+            std::cout << v->point()[0] << " " << v->point()[1] << std::endl;
+
+        } while (edge != first);
+
+    }
 
     std::cout << "Vertex count: " << this->vertexes.size() << std::endl;
 
