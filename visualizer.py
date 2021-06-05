@@ -4,6 +4,8 @@ import json
 import matplotlib.colors as mcolors
 import sys
 
+scale = 1/100
+
 if len(sys.argv) != 3:
     print("Insert M:")
 
@@ -23,7 +25,7 @@ result = json.loads(lines)
 
 print(result)
 
-fig, ax = plt.subplots(figsize=(M, M))
+fig, ax = plt.subplots(figsize=(M * scale, M * scale))
 
 ax.set(xlim=(0, M ), ylim=(0, M ))
 

@@ -423,15 +423,16 @@ std::unique_ptr<DCEL> generateIntNPointsWithinM(int N, int M) {
 
         outer = dcel->addEdge(std::get<1>(added), origin);
 
+        verts++;
+
         std::cout << "Added point " << X(nP) << "," << Y(nP) << " to the DCEL to the edge " <<
                   X(origin->point()) << ", " << Y(origin->point())
                   << " " << X(target->point()) << ", " << Y(target->point()) <<
-                  ". Current state:" << std::endl;
+                  ". Current state:" << verts << "/" << N << std::endl;
 
-        dcel->print();
-
-        verts++;
     }
+
+    dcel->print();
 
     std::ofstream file("result.json");
 

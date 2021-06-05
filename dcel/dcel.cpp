@@ -310,24 +310,14 @@ Face *DCEL::addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v) {
         i = i->getNext();
     }
 
-    bool removed = false;
-
-    //std::cout << "To remove: " << f << std::endl;
-
     for (auto it = this->faces.begin(); it != this->faces.end(); it++) {
-
-        //std::cout << (*it).get() << std::endl;
 
         if ((*it).get() == f) {
             it = this->faces.erase(it);
-            removed = true;
             break;
         }
 
     }
-
-    if (!removed)
-        std::cout << "NOT REMOVED????" << std::endl;
 
     Face *outsideFace = nullptr;
 
@@ -372,10 +362,8 @@ std::tuple<Vertex *, HalfEdge *> DCEL::addVertex(const std::vector<int> &coords,
     edge2->setIncidentFace(f);
 
     if (h->getTwin()->getIncidentFace() != f) {
-        std::cout << "not incident " << std::endl;
         edge1->setNext(h->getNext());
     } else {
-        std::cout << "incident " << std::endl;
         edge1->setNext(h->getTwin());
     }
 
