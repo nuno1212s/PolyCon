@@ -1,6 +1,7 @@
 #include "dcel.h"
 #include <utility>
 #include <iostream>
+#include "nlohmann/json.hpp"
 
 DCEL::DCEL() : halfEdges(), faces(), vertexes() {
 
@@ -139,7 +140,7 @@ Face *DCEL::initialize(const std::vector<std::vector<int>> &sortedPoints) {
 
     Face *out = addEdge(prev, first);
 
-    traverseFace(out);
+    //traverseFace(out);
 
     return out;
 }
@@ -300,21 +301,33 @@ Face *DCEL::addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v) {
 
     i = halfE1.get();
 
-    do {
+    while (true) {
 
         i->setIncidentFace(face1.get());
-        i = i->getNext();
 
-    } while (i->getTargetVertex() != u);
+        if (i->getTargetVertex() == u) break;
+
+        i = i->getNext();
+    }
+
+    bool removed = false;
+
+    //std::cout << "To remove: " << f << std::endl;
 
     for (auto it = this->faces.begin(); it != this->faces.end(); it++) {
 
+        //std::cout << (*it).get() << std::endl;
+
         if ((*it).get() == f) {
             it = this->faces.erase(it);
+            removed = true;
             break;
         }
 
     }
+
+    if (!removed)
+        std::cout << "NOT REMOVED????" << std::endl;
 
     Face *outsideFace = nullptr;
 
@@ -486,9 +499,24 @@ void DCEL::print() {
 
         std::cout << "Face nr: " << count++ << std::endl;
 
+        int edgeCount = face->getEdgeCount();
+
+        if (edgeCount > 3) {
+            if (edgeCount != this->vertexes.size()) {
+                std::cerr << "ERROR: Main face does not contain all vertexes" << std::endl;
+
+                exit(EXIT_FAILURE);
+            }
+        }
+
         HalfEdge *edge = face->getArbitraryHalfEdge(), *first = edge;
 
         do {
+
+            if (edge->getIncidentFace() != face.get()) {
+                std::cout << "FAILED, EDGE HAS THE WRONG FACE: " << std::endl
+                          << "SHOULD BE " << face.get() << " IS " << edge->getIncidentFace() << std::endl;
+            }
 
             Vertex *v = edge->getTargetVertex();
 
@@ -505,4 +533,35 @@ void DCEL::print() {
     std::cout << "Half Edges count: " << this->halfEdges.size() << std::endl;
 }
 
+std::unique_ptr<std::string> DCEL::serialize() {
 
+    using namespace nlohmann;
+
+    json faces = json::array();
+
+    for (const auto &face : getFaces()) {
+
+        json faceArr = json::array();
+
+        auto firstFace = face->getArbitraryHalfEdge(), curr = firstFace;
+
+        do {
+
+            json point = json::array();
+
+            auto target = curr->getTargetVertex();
+
+            point.push_back(X(target->point()));
+            point.push_back(Y(target->point()));
+
+            curr = curr->getNext();
+
+            faceArr.push_back(point);
+
+        } while (curr != firstFace);
+
+        faces.push_back(faceArr);
+    }
+
+    return std::make_unique<std::string>(faces.dump());
+}

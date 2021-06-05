@@ -4,6 +4,10 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include "nlohmann/json.hpp"
+
+#define X(point) (point[0])
+#define Y(point) (point[1])
 
 class Vertex;
 
@@ -106,6 +110,21 @@ public:
     HalfEdge *getArbitraryHalfEdge() const {
         return arbitraryHalfEdge;
     }
+
+    int getEdgeCount() const {
+
+        int count = 0;
+
+        HalfEdge *start = getArbitraryHalfEdge();
+
+        do {
+            count++;
+
+            start = start->getNext();
+        } while (start != getArbitraryHalfEdge());
+
+        return count;
+    }
 };
 
 /**
@@ -131,7 +150,7 @@ public:
      * @param sortedPoints
      * @return The outer face of the generated polygon (Clock wise order face)
      */
-    Face* initialize(const std::vector<std::vector<int>> &sortedPoints);
+    Face *initialize(const std::vector<std::vector<int>> &sortedPoints);
 
 protected:
     /**
@@ -198,6 +217,8 @@ public:
 
     void print();
 
+    std::unique_ptr<std::string> serialize();
+
 private:
     Face *addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v);
 
@@ -205,5 +226,6 @@ private:
 
     HalfEdge *getEdgeStartingIn(Vertex *v, Face *f);
 };
+
 
 #endif //TRABALHO2_DCEL_H
