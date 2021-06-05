@@ -1,22 +1,28 @@
 #ifndef TRABALHO2_DCEL_H
 #define TRABALHO2_DCEL_H
 
+#include <utility>
 #include <vector>
 #include <memory>
 
 class Vertex;
+
 class Face;
 
 class HalfEdge {
 
 private:
-    Vertex *targetVertex;
+    Vertex *targetVertex, *originVertex;
 
     Face *incidentFace;
 
     HalfEdge *twin, *next, *previous;
 
 public:
+    Vertex *getOriginVertex() const {
+        return originVertex;
+    }
+
     Vertex *getTargetVertex() const {
         return targetVertex;
     }
@@ -35,6 +41,10 @@ public:
 
     HalfEdge *getPrevious() const {
         return previous;
+    }
+
+    void setOriginVertex(Vertex *origin) {
+        HalfEdge::originVertex = origin;
     }
 
     void setTargetVertex(Vertex *targetVertex) {
@@ -67,8 +77,8 @@ private:
     std::vector<int> coordinates;
 
 public:
-    Vertex(std::vector<int> coordinates) :
-            coordinates(std::move(coordinates)) {}
+    Vertex(std::vector<int> coordinates) : coordinates(std::move(coordinates)) {
+    }
 
 public:
     HalfEdge *getHalfEdge() const {
@@ -76,7 +86,7 @@ public:
     }
 
     const std::vector<int> &point() const {
-        return coordinates;
+        return this->coordinates;
     }
 
     void setHalfEdge(HalfEdge *halfEdge) {
@@ -110,6 +120,19 @@ private:
 
     std::vector<std::unique_ptr<Face>> faces;
 
+public:
+
+    DCEL();
+
+    ~DCEL();
+
+    /**
+     * Initialize the figure given by the set of points
+     * @param sortedPoints
+     * @return The outer face of the generated polygon (Clock wise order face)
+     */
+    Face* initialize(const std::vector<std::vector<int>> &sortedPoints);
+
 protected:
     /**
      * Get an edge that targets the vertex v, on the face f
@@ -123,23 +146,31 @@ protected:
 
 public:
 
-    DCEL();
+    const std::vector<std::unique_ptr<HalfEdge>> &getHalfEdges() {
+        return this->halfEdges;
+    }
 
-    void initialize(const std::vector<std::vector<int>> &sortedPoints);
+    const std::vector<std::unique_ptr<Vertex>> &getVertexes() {
+        return this->vertexes;
+    }
+
+    const std::vector<std::unique_ptr<Face>> &getFaces() {
+        return this->faces;
+    }
 
     /**
      * Add an edge between two vertices, effectively splitting a an existing face
      * @param v
      * @param u
      */
-    void addEdge(Vertex *u, Vertex *v);
+    Face *addEdge(Vertex *u, Vertex *v);
 
     /**
      * Add an edge between two vertices, effectively splitting an existing face
      * @param incidentOnU The half edge that is incident on the face we are splitting and who's target(incidentOnU) = u
      * @param v
      */
-    void addEdge(HalfEdge *incidentOnU, Vertex *v);
+    Face *addEdge(HalfEdge *incidentOnU, Vertex *v);
 
     /**
      * Add a vertex to the DCEL structure, one with the coords
@@ -166,10 +197,13 @@ public:
     void splitEdge(const std::vector<int> &, HalfEdge *h);
 
     void print();
-private:
-    void addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v);
 
-    void addEdgeClosedPolygon(HalfEdge *incidentOnU, Vertex *v);
+private:
+    Face *addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v);
+
+    Face *addEdgeClosedPolygon(HalfEdge *incidentOnU, Vertex *v);
+
+    HalfEdge *getEdgeStartingIn(Vertex *v, Face *f);
 };
 
 #endif //TRABALHO2_DCEL_H
