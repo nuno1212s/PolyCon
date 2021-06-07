@@ -24,7 +24,7 @@ private:
 
 public:
     Vertex *getOriginVertex() const {
-        return originVertex;
+        return getTwin()->getTargetVertex();
     }
 
     Vertex *getTargetVertex() const {

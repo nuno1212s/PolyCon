@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(Trabalho2)
+project(PolyCon)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -16,6 +16,6 @@ if(NOT json_POPULATED)
     add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
-add_executable(Trabalho2 main.cpp dcel/dcel.h dcel/dcel.cpp polygon_construction.cpp polygon_construction.h)
+add_executable(PolyCon main.cpp dcel/dcel.h dcel/dcel.cpp polygon_construction.cpp polygon_construction.h)
 
-target_link_libraries(Trabalho2 nlohmann_json::nlohmann_json)
+target_link_libraries(PolyCon nlohmann_json::nlohmann_json)

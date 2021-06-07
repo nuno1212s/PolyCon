@@ -4,7 +4,7 @@ import json
 import matplotlib.colors as mcolors
 import sys
 
-scale = 1/100
+scale = 1/20
 
 if len(sys.argv) != 3:
     print("Insert M:")
@@ -51,6 +51,5 @@ for triangle in result[:-1]:
 
     current+=1
 
-plt.legend()
 plt.draw()
 plt.show()

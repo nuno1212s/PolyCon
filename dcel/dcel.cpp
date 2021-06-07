@@ -9,6 +9,9 @@ DCEL::DCEL() : halfEdges(), faces(), vertexes() {
 
 DCEL::~DCEL() {
 
+    this->halfEdges.clear();
+    this->faces.clear();
+    this->vertexes.clear();
 
 }
 
@@ -83,6 +86,15 @@ Face *DCEL::getCommonFaceBetween(Vertex *v, Vertex *u) {
  */
 HalfEdge *DCEL::getEdgeStartingIn(Vertex *v, Face *f) {
 
+    for (const auto &edge : this->halfEdges) {
+
+        if (edge->getOriginVertex() == v && edge->getIncidentFace() == f) {
+            return edge.get();
+        }
+
+    }
+
+    return nullptr;
 }
 
 Face *DCEL::initialize(const std::vector<std::vector<int>> &sortedPoints) {
@@ -291,8 +303,6 @@ Face *DCEL::addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v) {
 
         //This should mean that start.getTwin().getIncidentFace == f
         halfE1->setNext(start->getTwin());
-
-        result = true;
     } else {
         halfE1->setNext(i->getTwin());
     }
@@ -321,11 +331,7 @@ Face *DCEL::addEdgeSingleFace(HalfEdge *incidentOnU, Vertex *v) {
 
     Face *outsideFace = nullptr;
 
-    if (result) {
-        outsideFace = halfE2->getIncidentFace();
-    } else {
-        outsideFace = halfE1->getIncidentFace();
-    }
+    outsideFace = halfE2->getIncidentFace();
 
     this->faces.push_back(std::move(face1));
     this->faces.push_back(std::move(face2));

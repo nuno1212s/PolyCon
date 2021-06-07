@@ -439,6 +439,8 @@ std::unique_ptr<DCEL> generateIntNPointsWithinM(int N, int M) {
     file << *dcel->serialize();
 
     file.close();
+
+    return std::move(dcel);
 }
 
 void testPoints(int M) {
